@@ -1,0 +1,50 @@
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'java'
+
+// Arguments :
+ext.plugin_version = "0.1.0"
+
+version = ext.plugin_version + "-BETA"
+if (project.hasProperty("BUILD_NUMBER")) {
+	version = version + '-' + project.property("BUILD_NUMBER")
+}
+
+group = 'fr.evercraft'
+organization = 'EverCraft'
+
+// Default tasks
+defaultTasks 'clean', 'build'
+
+repositories {
+	mavenCentral()
+	maven {
+		name = 'spigot-repo'
+		url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+	}
+	maven {
+		name = 'dmulloy2-repo'
+		url = 'https://github.com/dmulloy2/ProtocolLib/releases/download/4.2.1/'
+	}
+	maven {
+		name = 'bungeecord-repo'
+		url = 'https://oss.sonatype.org/content/repositories/snapshots'
+	}
+}
+
+dependencies {
+	compile "org.spigotmc:spigot-api:1.11.2-R0.1-SNAPSHOT"
+	compile "org.bukkit:bukkit:1.11.2-R0.1-SNAPSHOT"
+	compile group: 'io.netty', name: 'netty-all', version: '4.0.4.Final'
+	compile files('ProtocolLib-4.2.1.jar')
+	//compile "com.comphenix.protocol:ProtocolLib-API:4.2.1"
+}
+
+jar {
+	manifest {
+		attributes 'Implementation-Title': name,
+				   'Implementation-Version': version
+	}
+}
