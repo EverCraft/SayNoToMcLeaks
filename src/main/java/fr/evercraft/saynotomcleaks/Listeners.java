@@ -74,14 +74,14 @@ public class Listeners {
                     
                     final String name = me.names.getIfPresent(event.getPlayer().getAddress());
                     if (name == null) {
-                        me.plugin.debug("Impossible de trouver le pseudo du joueur (IP='" + event.getPlayer().getAddress() + "')");
+                        me.plugin.debug("Error : username not found (IP='" + event.getPlayer().getAddress() + "').");
                         return;
                     }
                     
                     final Boolean value = me.caches.getIfPresent(name);
                     if (value != null) {
                         if (value == true) {
-                            me.plugin.debug("Le joueur " + name + " est déjà connu et il n'a pas McLeaks");
+                            me.plugin.debug("The player " + name + " is present in cache.");
                             return;
                         } else if (value == false) {
                         	me.executeCommands(name);
@@ -101,7 +101,7 @@ public class Listeners {
                                 me.executeCommands(name);
                             } else {
                             	me.caches.put(name, true);
-                                me.plugin.debug("Le joueur " + name + " n'utilise pas McLeaks");
+                                me.plugin.debug("The player " + name + " doesn't use alt account.");
                             }
                         } catch (AuthenticationUnavailableException e) {}
                     });
@@ -124,12 +124,12 @@ public class Listeners {
     	@SuppressWarnings("deprecation")
         Player player = this.plugin.getServer().getPlayerExact(name);
         if (player == null || player.getName() == null || player.getUniqueId() == null) {
-        	this.plugin.debug("Le joueur " + name + " est introuvable");
+        	this.plugin.debug( name + " not found.");
         }
         
         List<?> commands = this.plugin.getConfig().getList("commands");
         if (commands == null) {
-        	this.plugin.warn("Erreur dans la liste des commandes");
+        	this.plugin.warn("Error : Commands list.");
         	return;
         }
         
@@ -140,6 +140,6 @@ public class Listeners {
     				.replaceAll("<displayname>", player.getDisplayName())
     				.replaceAll("<ip>", player.getAddress().getAddress().getHostAddress()));
         }
-        this.plugin.debug("Le joueur " + name + " essaye de venir avec McLeaks");
+        this.plugin.debug("The player " + name + " is an alt account.");
     }
 }
