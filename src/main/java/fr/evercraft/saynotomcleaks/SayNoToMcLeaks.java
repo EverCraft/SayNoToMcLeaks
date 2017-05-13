@@ -28,7 +28,9 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 		new Listeners(this);
 		
 		// Commands
-		this.getCommand("SayNoToMcLeaks").setExecutor(new Commands(this));
+		Commands command = new Commands(this);
+		this.getCommand("SayNoToMcLeaks").setExecutor(command);
+		this.getCommand("SayNoToMcLeaks").setTabCompleter(command);
 		
 		// Configs
 		this.initConfig();
