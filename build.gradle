@@ -37,8 +37,10 @@ repositories {
 dependencies {
 	compile "org.spigotmc:spigot-api:1.11.2-R0.1-SNAPSHOT"
 	compile "org.bukkit:bukkit:1.11.2-R0.1-SNAPSHOT"
+	//compile "org.bukkit:craftbukkit:1.11.2-R0.1-SNAPSHOT"
 	compile group: 'io.netty', name: 'netty-all', version: '4.0.4.Final'
 	compile files('ProtocolLib-4.2.1.jar')
+	compile files('craftbukkit-1.11.2.jar')
 	//compile "com.comphenix.protocol:ProtocolLib-API:4.2.1"
 }
 
@@ -46,5 +48,8 @@ jar {
 	manifest {
 		attributes 'Implementation-Title': name,
 				   'Implementation-Version': version
+	}
+	from('src/main/java') {
+	   include 'plugin.yml'
 	}
 }

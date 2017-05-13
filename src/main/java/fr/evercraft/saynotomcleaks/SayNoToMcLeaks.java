@@ -2,7 +2,6 @@ package fr.evercraft.saynotomcleaks;
 
 import java.util.logging.Logger;
 
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.protocol.ProtocolLibrary;
@@ -15,37 +14,29 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	
 	private ProtocolManager protocolManager;
 
+	public void onLoad() {
+		this.protocolManager = ProtocolLibrary.getProtocolManager();
+		if (this.protocolManager == null) {
+			this.warn("Le plugin ProtocolLib n'est pas activé");
+			this.setEnabled(false);
+		}
+	}
+	
 	public void onEnable() {
-		this.protocolManager = setupProtocolManager();
-		if (this.protocolManager == null) return; // Erreur
+		new Listeners(this);
 		
-		this.getCommand("evertest").setExecutor(new Commands(this));
+		this.getCommand("SayNoToMcLeaks").setExecutor(new Commands(this));
 	}
 
 	public void onDisable() {
 	}
 	
-	/**
-	 * Rechargement du plugin
-	 */
 	public void onReload() {
 		
 	}
 	
 	public ProtocolManager getProtocolManager() {
 		return this.protocolManager;
-	}
-	
-	private ProtocolManager setupProtocolManager() {
-		ProtocolManager protocolManager = null;
-		Plugin plugin = getServer().getPluginManager().getPlugin("ProtocolLib");
-		if ((plugin == null) || (!(plugin instanceof ProtocolLibrary))) {
-			this.warn("Le plugin ProtocolLib n'est pas activé");
-			this.setEnabled(false);
-		} else {
-			protocolManager = ProtocolLibrary.getProtocolManager();
-		}
-		return protocolManager;
 	}
 	
 	public void info(String message) {

@@ -1,0 +1,9 @@
+name: SayNoToMcLeaks
+version: 1.0
+author: rexbut
+main: fr.evercraft.saynotomcleaks.SayNoToMcLeaks
+depend: [ProtocolLib]
+commands:
+  SayNoToMcLeaks:
+    description: SayNoToMcLeaks Description
+    usage: /SayNoToMcLeaks
