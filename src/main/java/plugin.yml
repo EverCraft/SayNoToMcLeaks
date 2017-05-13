@@ -1,5 +1,5 @@
 name: SayNoToMcLeaks
-version: 1.0
+version: 0.1
 author: rexbut
 main: fr.evercraft.saynotomcleaks.SayNoToMcLeaks
 depend: [ProtocolLib]
