@@ -12,6 +12,6 @@ node {
 	}
 
 	stage('Stage Upload') {
-	    archive 'build/lib/*.jar'
+	    archive 'build/libs/*.jar'
 	}
 }
