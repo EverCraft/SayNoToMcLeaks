@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class Commands implements CommandExecutor {
-	public SayNoToMcLeaks plugin;
+	public final SayNoToMcLeaks plugin;
 
 	public Commands(SayNoToMcLeaks plugin) {
 		this.plugin = plugin;

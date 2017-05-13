@@ -52,4 +52,7 @@ jar {
 	from('src/main/java') {
 	   include 'plugin.yml'
 	}
+	from('src/ressource') {
+	   include 'config.yml'
+	}
 }

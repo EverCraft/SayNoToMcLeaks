@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -73,34 +74,34 @@ public class Listeners {
                     
                     final String name = me.names.getIfPresent(event.getPlayer().getAddress());
                     if (name == null) {
-                        me.plugin.warn("Impossible de trouver le pseudo du joueur (IP='" + event.getPlayer().getAddress() + "')");
+                        me.plugin.debug("Impossible de trouver le pseudo du joueur (IP='" + event.getPlayer().getAddress() + "')");
                         return;
                     }
                     
                     final Boolean value = me.caches.getIfPresent(name);
                     if (value != null) {
                         if (value == true) {
-                            me.plugin.info("Le joueur " + name + " est déjà connu");
+                            me.plugin.debug("Le joueur " + name + " est déjà connu et il n'a pas McLeaks");
                             return;
                         } else if (value == false) {
-                        	me.sendCommands(name);
+                        	me.executeCommands(name);
                             return;
                         }
                     }
                         
                     final KeyPair server = ((CraftServer) this.plugin.getServer()).getServer().O();
                     final SecretKey secretKey = Listeners.this.getSecretKey(packet.getSharedSecret(), server.getPrivate());
-                    final String s = (new BigInteger(MinecraftEncryption.a("", server.getPublic(), secretKey))).toString(16);
+                    final String serverId = (new BigInteger(MinecraftEncryption.a("", server.getPublic(), secretKey))).toString(16);
                     
                     this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> {
                         try {
-                            GameProfile gameProfile = ((CraftServer) this.plugin.getServer()).getServer().az().hasJoinedServer(new GameProfile((UUID)null, name), s, event.getPlayer().getAddress().getAddress());
+                            GameProfile gameProfile = ((CraftServer) this.plugin.getServer()).getServer().az().hasJoinedServer(new GameProfile((UUID)null, name), serverId, event.getPlayer().getAddress().getAddress());
                             if (gameProfile == null) {
                             	me.caches.put(name, false);
-                                me.sendCommands(name);
+                                me.executeCommands(name);
                             } else {
                             	me.caches.put(name, true);
-                                me.plugin.info("Le joueur " + name + " n'utilise pas McLeaks");
+                                me.plugin.debug("Le joueur " + name + " n'utilise pas McLeaks");
                             }
                         } catch (AuthenticationUnavailableException e) {}
                     });
@@ -113,14 +114,32 @@ public class Listeners {
         return MinecraftEncryption.a(key, secretKeyEncrypted);
     }
     
-    public void sendCommands(String name) {
+    public void executeCommands(String name) {
+    	this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+    		Listeners.this.executeCommandsSync(name);
+    	}, 100);
+    }
+    
+    public void executeCommandsSync(String name) {
     	@SuppressWarnings("deprecation")
-        Player player = this.plugin.getServer().getPlayer(name);
-        if (player == null) {
-        	this.plugin.info("Le joueur " + name + " est introuvable");
+        Player player = this.plugin.getServer().getPlayerExact(name);
+        if (player == null || player.getName() == null || player.getUniqueId() == null) {
+        	this.plugin.debug("Le joueur " + name + " est introuvable");
         }
         
-        player.kickPlayer("SayNoToMcLeaks");
-        this.plugin.warn("Le joueur " + name + " essaye de venir avec McLeaks");
+        List<?> commands = this.plugin.getConfig().getList("commands");
+        if (commands == null) {
+        	this.plugin.warn("Erreur dans la liste des commandes");
+        	return;
+        }
+        
+        for (Object command : commands) {
+    		this.plugin.getServer().dispatchCommand(this.plugin.getServer().getConsoleSender(), command.toString()
+    				.replaceAll("<player>", player.getName())
+    				.replaceAll("<uuid>", player.getUniqueId().toString())
+    				.replaceAll("<displayname>", player.getDisplayName())
+    				.replaceAll("<ip>", player.getAddress().getAddress().getHostAddress()));
+        }
+        this.plugin.debug("Le joueur " + name + " essaye de venir avec McLeaks");
     }
 }

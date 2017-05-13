@@ -1,0 +1,5 @@
+# True/False
+debug: false
+commands:
+- kick <player> &cAlt Account detected
+- 'broadcast &6<player> &7was kicked for reason : Alt Account detected'

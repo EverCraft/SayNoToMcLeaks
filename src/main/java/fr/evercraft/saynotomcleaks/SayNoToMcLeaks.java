@@ -1,5 +1,6 @@
 package fr.evercraft.saynotomcleaks;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,6 +14,7 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	private static final Logger LOG = Logger.getLogger("Minecraft");
 	
 	private ProtocolManager protocolManager;
+	private boolean debug;
 
 	public void onLoad() {
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
@@ -25,14 +27,30 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	public void onEnable() {
 		new Listeners(this);
 		
+		// Commands
 		this.getCommand("SayNoToMcLeaks").setExecutor(new Commands(this));
+		
+		// Configs
+		this.initConfig();
 	}
 
 	public void onDisable() {
 	}
 	
 	public void onReload() {
+		// Configs
+		this.initConfig();
+	}
+	
+	public void initConfig() {
+		this.saveDefaultConfig();
+		this.reloadConfig();
+		this.getConfig().addDefault("commands", Arrays.asList("kick <player> &cSayNoToMcLeaks"));
+		this.getConfig().options().copyDefaults(true);
+		this.saveConfig();
+		this.reloadConfig();
 		
+		this.debug = this.getConfig().getBoolean("debug");
 	}
 	
 	public ProtocolManager getProtocolManager() {
@@ -45,5 +63,9 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	
 	public void warn(String message) {
 		LOG.warning("[" + this.getName() + "] " + message);
+	}
+	
+	public void debug(String message) {
+		if (this.debug) LOG.info("[" + this.getName() + "] " + message);
 	}
 }
