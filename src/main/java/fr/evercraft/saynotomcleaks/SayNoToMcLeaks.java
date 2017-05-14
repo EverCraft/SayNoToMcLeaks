@@ -1,3 +1,19 @@
+/*
+ * This file is part of SayNoToMcLeaks.
+ *
+ * SayNoToMcLeaks is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SayNoToMcLeaks is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SayNoToMcLeaks.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.evercraft.saynotomcleaks;
 
 import java.util.Arrays;
@@ -19,13 +35,26 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	public void onLoad() {
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
 		if (this.protocolManager == null) {
-			this.warn("Le plugin ProtocolLib n'est pas activé");
+			this.warn("ProtocolLib is not enabled");
+			this.setEnabled(false);
+		}
+		if (!this.getServer().getOnlineMode()) {
+			this.warn("This server is in offline mode");
 			this.setEnabled(false);
 		}
 	}
 	
 	public void onEnable() {
-		new Listeners(this);
+		// Metrics
+		this.initMetrics();
+		
+		try {
+			new Listeners(this);
+		} catch (Exception e) {
+			e.printStackTrace();
+			this.warn("The server version is incompatible");
+			this.setEnabled(false);
+		}
 		
 		// Commands
 		Commands command = new Commands(this);
@@ -42,6 +71,7 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	public void onReload() {
 		// Configs
 		this.initConfig();
+		this.info("Reloaded");
 	}
 	
 	public void initConfig() {
@@ -54,6 +84,10 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 		this.reloadConfig();
 		
 		this.debug = this.getConfig().getBoolean("debug");
+	}
+	
+	public void initMetrics() {
+        new Metrics(this);
 	}
 	
 	public ProtocolManager getProtocolManager() {
