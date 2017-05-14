@@ -29,7 +29,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 			}
 			return true;
 		} else {
-			sender.sendMessage(ChatColor.GREEN + "------------ [SayNoToMcLeaks : Par rexbut] ------------");
+			sender.sendMessage(ChatColor.GREEN + "------------ [SayNoToMcLeaks : By rexbut] ------------");
 			sender.sendMessage(ChatColor.GREEN + "/saynotomcleaks help : Help plugin");
 			if (sender.hasPermission(PERMISSION_RELOAD)) {
 				sender.sendMessage(ChatColor.GREEN + "/saynotomcleaks reload : Reload plugin");
