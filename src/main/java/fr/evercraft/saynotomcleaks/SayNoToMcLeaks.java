@@ -49,6 +49,7 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 		this.reloadConfig();
 		this.getConfig().addDefault("commands", Arrays.asList("kick <player> &cSayNoToMcLeaks"));
 		this.getConfig().options().copyDefaults(true);
+		this.getConfig().options().copyHeader(true);
 		this.saveConfig();
 		this.reloadConfig();
 		
