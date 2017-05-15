@@ -175,7 +175,7 @@ public class Listeners implements Listener {
 									me.plugin.debug("The player " + name + " doesn't use alt account.");
 								} else {
 									me.caches.put(name, false);
-									me.executeCommands(name);
+									me.executeCommands(name, 100);
 								}
 							} catch (Exception e) {
 								if (me.plugin.isDebug()) {
@@ -193,7 +193,7 @@ public class Listeners implements Listener {
 	public void onPlayerJoin(final PlayerJoinEvent event) {
 		final Boolean value = this.caches.getIfPresent(event.getPlayer().getName());
 		if (value != null && !value) {
-			this.executeCommandsSync(event.getPlayer().getName());
+			this.executeCommands(event.getPlayer().getName(), 50);
 		}
 	}
 
@@ -201,13 +201,13 @@ public class Listeners implements Listener {
 		return CryptManager.decryptSharedKey(key, secretKeyEncrypted);
 	}
 	
-	public void executeCommands(final String name) {
+	public void executeCommands(final String name, long later) {
 		this.plugin.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
 		    @Override
 		    public void run() {
 		    	Listeners.this.executeCommandsSync(name);
 		    }
-		}, 20);
+		}, later);
 	}
 	
 	public void executeCommandsSync(String name) {
