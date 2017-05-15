@@ -16,16 +16,13 @@
  */
 package fr.evercraft.saynotomcleaks;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -77,7 +74,7 @@ public class Listeners implements Listener {
 				}
 			});
 		this.caches = CacheBuilder.newBuilder()
-			.expireAfterAccess(2, TimeUnit.HOURS)
+			.expireAfterAccess(5, TimeUnit.HOURS)
 			.build(new CacheLoader<String, Boolean>() {
 				@Override
 				public Boolean load(String uuid) {
@@ -126,6 +123,9 @@ public class Listeners implements Listener {
 		}
 	}
 
+	/**
+	 * Initalise le listener de ProtocolLib
+	 */
 	public void listerner() {
 		this.plugin.getProtocolManager().addPacketListener(new PacketAdapter(
 				this.plugin,
@@ -136,19 +136,20 @@ public class Listeners implements Listener {
 			@Override
 			public void onPacketReceiving(PacketEvent event) {
 				final Listeners me = Listeners.this;
+				final InetSocketAddress address = event.getPlayer().getAddress();
 				
 				// Sauvegarde le nom du joueur par rapport à son IP et son Port
 				if (event.getPacketType() == PacketType.Login.Client.START) {
 					final WrapperLoginClientStart packet = new WrapperLoginClientStart(event.getPacket());
-					me.names.put(event.getPlayer().getAddress(), packet.getProfile().getName());
+					me.names.put(address, packet.getProfile().getName());
 				
 				// Requete pour vérifier
 				} else if (event.getPacketType() == PacketType.Login.Client.ENCRYPTION_BEGIN) {
 					final WrapperLoginClientEncryptionBegin packet = new WrapperLoginClientEncryptionBegin(event.getPacket());
 					
-					final String name = me.names.getIfPresent(event.getPlayer().getAddress());
+					final String name = me.names.getIfPresent(address);
 					if (name == null) {
-						me.plugin.debug("Error : username not found (IP='" + event.getPlayer().getAddress() + "').");
+						me.plugin.debug("Error : username not found (IP='" + address.getAddress().getHostName() + "').");
 						return;
 					}
 					
@@ -162,45 +163,80 @@ public class Listeners implements Listener {
 						return;
 					}
 					
-					final SecretKey secretKey = me.getSecretKey(packet.getSharedSecret(), me.serverKey.getPrivate());
+					final SecretKey secretKey = CryptManager.decryptSharedKey(me.serverKey.getPrivate(), packet.getSharedSecret());
 					final String serverId = (new BigInteger(CryptManager.getServerIdHash("", me.serverKey.getPublic(), secretKey))).toString(16);
 					
-					this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
+					this.plugin.getServer().getScheduler().runTaskLaterAsynchronously(this.plugin, new Runnable() {
 					    @Override
 					    public void run() {
-							try {
-								boolean result = me.isSafe(me.service, name, serverId, event.getPlayer().getAddress().getAddress()); 
-								if (result) {
-									me.caches.put(name, true);
-									me.plugin.debug("The player " + name + " doesn't use alt account.");
-								} else {
-									me.caches.put(name, false);
-									me.executeCommands(name, 100);
-								}
-							} catch (Exception e) {
-								if (me.plugin.isDebug()) {
-									e.printStackTrace();
-								}
-							}
+							me.task(name, serverId, address.getAddress(), true);
 					    }
-					});
+					}, 60);
 				}
 			}
 		});
 	}
 	
+	/**
+	 * Event exécuté quand le joueur charge le monde
+	 * @param event
+	 */
 	@EventHandler
 	public void onPlayerJoin(final PlayerJoinEvent event) {
 		final Boolean value = this.caches.getIfPresent(event.getPlayer().getName());
 		if (value != null && !value) {
-			this.executeCommands(event.getPlayer().getName(), 50);
+			this.executeCommands(event.getPlayer().getName(), 80);
 		}
 	}
-
-	public SecretKey getSecretKey(byte[] secretKeyEncrypted, PrivateKey key) {
-		return CryptManager.decryptSharedKey(key, secretKeyEncrypted);
+	
+	/**
+	 * Réalise la requête au prêt de Mojang, ajoute le resultat dans le cache et applique les commandes si nécessaire
+	 * @param name Le pseudo du joueur
+	 * @param serverId Le serverId hash
+	 * @param address L'adresse IP du joueur
+	 * @param again True : on réessaye de faire la requête si il y a une erreur
+	 */
+	public void task(final String name, final String serverId, final InetAddress address, boolean again) {
+		try {
+			boolean result = this.isSafe(name, serverId, address); 
+			
+			// Si il y les 2 IP correspondent
+			if (result) {
+				this.caches.put(name, true);
+				this.plugin.debug("The player " + name + " doesn't use alt account.");
+				
+			// Les 2 IP ne correspondent pas
+			} else {
+				this.caches.put(name, false);
+				this.executeCommands(name, 100);
+			}
+		} catch (Exception e) {
+			// S'il y a eu un problème lors de la connexion au serveur
+			if (e.getClass().getName().equals("com.mojang.authlib.exceptions.AuthenticationException")) {
+				// On réessaye dans 1 minutes
+				if (again) {
+					this.plugin.debug("The client has sent too many requests within a certain amount of time. (name='" + name + "',IP='" + address.getHostName() + "')");
+					this.plugin.getServer().getScheduler().runTaskLaterAsynchronously(this.plugin, new Runnable() {
+					    @Override
+					    public void run() {
+					    	Listeners.this.task(name, serverId, address, false);
+					    }
+					}, 60 * 20L);
+				} else {
+					this.plugin.debug("It is not possible to make requests to Mojang. (name='" + name + "',IP='" + address.getHostName() + "')");
+				}
+			// Autre erreur
+			} else if (this.plugin.isDebug()) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
+	/**
+	 * Execute la liste de commande dans un certains temps
+	 * @param name Le pseudo du joueur
+	 * @param later Le temps avant l'exécution
+	 */
 	public void executeCommands(final String name, long later) {
 		this.plugin.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
 		    @Override
@@ -210,7 +246,11 @@ public class Listeners implements Listener {
 		}, later);
 	}
 	
-	public void executeCommandsSync(String name) {
+	/**
+	 * Execute la liste des commandes immédiatement. A faire uniquement en synchrone !
+	 * @param name Le pseudo du joueur
+	 */
+	public void executeCommandsSync(final String name) {
 		@SuppressWarnings("deprecation")
 		final Player player = this.plugin.getServer().getPlayerExact(name);
 		if (player == null) {
@@ -218,7 +258,6 @@ public class Listeners implements Listener {
 			return;
 		}
 		
-		name = player.getName();
 		final String uuid = player.getUniqueId().toString();
 		final String displayname = player.getDisplayName();
 		final String ip = player.getAddress().getAddress().getHostAddress();
@@ -233,13 +272,21 @@ public class Listeners implements Listener {
 		this.plugin.debug("The player " + name + " is an alt account.");
 	}
 	
-	public boolean isSafe(Object yggdrasil, String name, String serverId, InetAddress address) throws MalformedURLException, UnsupportedEncodingException {
+	/**
+	 * Réalise la requête au prêt de Mojang
+	 * @param name Le pseudo du joueur
+	 * @param serverId Le serverId hash
+	 * @param address L'adresse IP du joueur
+	 * @return True : Le joueur à la même IP
+	 * @throws Exception
+	 */
+	public boolean isSafe(final String name, final String serverId, final InetAddress address) throws Exception {
 		URL url = new URL("https://sessionserver.mojang.com/session/minecraft/hasJoined?"
 				+ "username=" + URLEncoder.encode(name , "UTF-8")
 				+ "&serverId=" + URLEncoder.encode(serverId , "UTF-8")
 				+ "&ip=" + URLEncoder.encode(address.getHostAddress() , "UTF-8"));
 		
-		Object service = Reflection.getMethod(this.classYggdrasilMinecraftSessionService, "getAuthenticationService").invoke(yggdrasil);
+		Object service = Reflection.getMethod(this.classYggdrasilMinecraftSessionService, "getAuthenticationService").invoke(this.service);
 		Object reponse = Reflection.getMethod(this.classYggdrasilAuthenticationService, "makeRequest", java.net.URL.class, java.lang.Object.class, java.lang.Class.class)
 				.invoke(service, url, null, this.classHasJoinedMinecraftServerResponse);
 		
