@@ -30,6 +30,7 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	private static final Logger LOG = Logger.getLogger("Minecraft");
 	
 	private ProtocolManager protocolManager;
+	private Listeners listener;
 	private boolean debug;
 
 	public void onLoad() {
@@ -49,11 +50,12 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 		this.initMetrics();
 		
 		try {
-			new Listeners(this);
+			this.listener = new Listeners(this);
+			this.getServer().getPluginManager().registerEvents(this.listener, this);
 		} catch (Exception e) {
-			e.printStackTrace();
 			this.warn("The server version is incompatible");
 			this.setEnabled(false);
+			e.printStackTrace();
 		}
 		
 		// Commands
@@ -71,6 +73,7 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	public void onReload() {
 		// Configs
 		this.initConfig();
+		this.listener.reload();
 		this.info("Reloaded");
 	}
 	
@@ -104,5 +107,9 @@ public final class SayNoToMcLeaks extends JavaPlugin {
 	
 	public void debug(String message) {
 		if (this.debug) LOG.info("[" + this.getName() + "] " + message);
+	}
+
+	public boolean isDebug() {
+		return this.debug;
 	}
 }

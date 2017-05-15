@@ -16,19 +16,27 @@
  */
 package fr.evercraft.saynotomcleaks;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.SecretKey;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import com.comphenix.packetwrapper.WrapperLoginClientEncryptionBegin;
 import com.comphenix.packetwrapper.WrapperLoginClientStart;
@@ -42,21 +50,24 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-public class Listeners {
+public class Listeners implements Listener {
 	
 	private final SayNoToMcLeaks plugin;
 	
 	private final LoadingCache<InetSocketAddress, String> names;
-	private final LoadingCache<String, Boolean> caches; // True : no McLeaks
+	private final LoadingCache<String, Boolean> caches; // True == no McLeaks
+	private final List<String> commands;
 	
 	private KeyPair serverKey;
 	private Object service;
 
-	private final Class<?> classGameProfile;
 	private final Class<?> classMinecraftSessionService;
-	
+	private final Class<?> classHasJoinedMinecraftServerResponse;
+	private final Class<?> classYggdrasilMinecraftSessionService;
+	private final Class<?> classYggdrasilAuthenticationService;
 	public Listeners(SayNoToMcLeaks plugin) throws IllegalArgumentException, IllegalAccessException {
 		this.plugin = plugin;
+		this.commands = Collections.synchronizedList(new ArrayList<String>());
 		this.names = CacheBuilder.newBuilder()
 			.expireAfterAccess(2, TimeUnit.MINUTES)
 			.build(new CacheLoader<InetSocketAddress, String>() {
@@ -76,8 +87,10 @@ public class Listeners {
 		
 		Class<?> classCraftServer = Reflection.getCraftBukkitClass("CraftServer");
 		Class<?> classMinecraftServer = Reflection.getMinecraftClass("MinecraftServer");
-		this.classGameProfile = Reflection.getClass("com.mojang.authlib.GameProfile");
 		this.classMinecraftSessionService = Reflection.getClass("com.mojang.authlib.minecraft.MinecraftSessionService");
+		this.classHasJoinedMinecraftServerResponse = Reflection.getClass("com.mojang.authlib.yggdrasil.response.HasJoinedMinecraftServerResponse");
+		this.classYggdrasilMinecraftSessionService = Reflection.getClass("com.mojang.authlib.yggdrasil.YggdrasilMinecraftSessionService");
+		this.classYggdrasilAuthenticationService = Reflection.getClass("com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService");
 		
 		Object console = Reflection.getField(classCraftServer, "console", classMinecraftServer).get(this.plugin.getServer());
 		for (Field field : classMinecraftServer.getDeclaredFields()) {
@@ -94,6 +107,23 @@ public class Listeners {
 		Preconditions.checkNotNull(this.service);
 		
 		this.listerner();
+		this.reload();
+	}
+	
+	public void reload() {
+		this.commands.clear();
+		
+		final List<?> commands = this.plugin.getConfig().getList("commands");
+		if (commands == null) {
+			this.plugin.warn("Error : Commands list.");
+			return;
+		}
+		
+		for (Object command : commands) {
+			if (command instanceof String) {
+				this.commands.add((String) command);
+			}
+		}
 	}
 
 	public void listerner() {
@@ -109,7 +139,6 @@ public class Listeners {
 				
 				// Sauvegarde le nom du joueur par rapport à son IP et son Port
 				if (event.getPacketType() == PacketType.Login.Client.START) {
-					
 					final WrapperLoginClientStart packet = new WrapperLoginClientStart(event.getPacket());
 					me.names.put(event.getPlayer().getAddress(), packet.getProfile().getName());
 				
@@ -126,12 +155,11 @@ public class Listeners {
 					final Boolean value = me.caches.getIfPresent(name);
 					if (value != null) {
 						if (value == true) {
-							me.plugin.debug("The player " + name + " is present in cache.");
-							return;
-						} else if (value == false) {
-							me.executeCommands(name);
-							return;
+							me.plugin.debug("The player " + name + " is present in cache (No alt account).");
+						} else {
+							me.plugin.debug("The player " + name + " is present in cache (alt account).");
 						}
+						return;
 					}
 					
 					final SecretKey secretKey = me.getSecretKey(packet.getSharedSecret(), me.serverKey.getPrivate());
@@ -141,17 +169,19 @@ public class Listeners {
 					    @Override
 					    public void run() {
 							try {
-								Object profile = Reflection.getConstructor(classGameProfile, UUID.class, String.class).invoke(null, name);
-								Object result = Reflection.getMethod(classMinecraftSessionService, "hasJoinedServer", classGameProfile, String.class, InetAddress.class)
-										.invoke(me.service, profile, serverId, event.getPlayer().getAddress().getAddress());
-								if (result == null) {
-									me.caches.put(name, false);
-									me.executeCommands(name);
-								} else {
+								boolean result = me.isSafe(me.service, name, serverId, event.getPlayer().getAddress().getAddress()); 
+								if (result) {
 									me.caches.put(name, true);
 									me.plugin.debug("The player " + name + " doesn't use alt account.");
+								} else {
+									me.caches.put(name, false);
+									me.executeCommands(name);
 								}
-							} catch (Exception e) {}
+							} catch (Exception e) {
+								if (me.plugin.isDebug()) {
+									e.printStackTrace();
+								}
+							}
 					    }
 					});
 				}
@@ -159,39 +189,63 @@ public class Listeners {
 		});
 	}
 	
+	@EventHandler
+	public void onPlayerJoin(final PlayerJoinEvent event) {
+		final Boolean value = this.caches.getIfPresent(event.getPlayer().getName());
+		if (value != null && !value) {
+			this.executeCommandsSync(event.getPlayer().getName());
+		}
+	}
+
 	public SecretKey getSecretKey(byte[] secretKeyEncrypted, PrivateKey key) {
 		return CryptManager.decryptSharedKey(key, secretKeyEncrypted);
 	}
 	
-	public void executeCommands(String name) {
+	public void executeCommands(final String name) {
 		this.plugin.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
 		    @Override
 		    public void run() {
 		    	Listeners.this.executeCommandsSync(name);
 		    }
-		}, 150);
+		}, 20);
 	}
 	
 	public void executeCommandsSync(String name) {
 		@SuppressWarnings("deprecation")
-		Player player = this.plugin.getServer().getPlayerExact(name);
-		if (player == null || player.getName() == null || player.getUniqueId() == null) {
+		final Player player = this.plugin.getServer().getPlayerExact(name);
+		if (player == null) {
 			this.plugin.debug( name + " not found.");
-		}
-		
-		List<?> commands = this.plugin.getConfig().getList("commands");
-		if (commands == null) {
-			this.plugin.warn("Error : Commands list.");
 			return;
 		}
 		
-		for (Object command : commands) {
-			this.plugin.getServer().dispatchCommand(this.plugin.getServer().getConsoleSender(), command.toString()
-					.replaceAll("<player>", player.getName())
-					.replaceAll("<uuid>", player.getUniqueId().toString())
-					.replaceAll("<displayname>", player.getDisplayName())
-					.replaceAll("<ip>", player.getAddress().getAddress().getHostAddress()));
+		name = player.getName();
+		final String uuid = player.getUniqueId().toString();
+		final String displayname = player.getDisplayName();
+		final String ip = player.getAddress().getAddress().getHostAddress();
+		
+		for (String command : this.commands) {
+			this.plugin.getServer().dispatchCommand(this.plugin.getServer().getConsoleSender(), command
+					.replaceAll("<player>", name)
+					.replaceAll("<uuid>", uuid)
+					.replaceAll("<displayname>", displayname)
+					.replaceAll("<ip>", ip));
 		}
 		this.plugin.debug("The player " + name + " is an alt account.");
+	}
+	
+	public boolean isSafe(Object yggdrasil, String name, String serverId, InetAddress address) throws MalformedURLException, UnsupportedEncodingException {
+		URL url = new URL("https://sessionserver.mojang.com/session/minecraft/hasJoined?"
+				+ "username=" + URLEncoder.encode(name , "UTF-8")
+				+ "&serverId=" + URLEncoder.encode(serverId , "UTF-8")
+				+ "&ip=" + URLEncoder.encode(address.getHostAddress() , "UTF-8"));
+		
+		Object service = Reflection.getMethod(this.classYggdrasilMinecraftSessionService, "getAuthenticationService").invoke(yggdrasil);
+		Object reponse = Reflection.getMethod(this.classYggdrasilAuthenticationService, "makeRequest", java.net.URL.class, java.lang.Object.class, java.lang.Class.class)
+				.invoke(service, url, null, this.classHasJoinedMinecraftServerResponse);
+		
+		if ((reponse != null) && (Reflection.getMethod(this.classHasJoinedMinecraftServerResponse, "getId").invoke(reponse) != null)) {
+			return true;
+		}
+		return false;
 	}
 }
