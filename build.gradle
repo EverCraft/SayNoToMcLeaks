@@ -33,6 +33,10 @@ repositories {
 		url = 'http://repo.dmulloy2.net/content/groups/public/'
 	}
 	maven {
+		name = 'bungeecord-repo'
+		url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+	}
+	maven {
 		name = 'bstats-repo'
 		url = 'http://repo.bstats.org/content/repositories/releases/'
 	}
@@ -42,6 +46,9 @@ dependencies {
 	compile "org.bukkit:bukkit:1.11.2-R0.1-SNAPSHOT"
 	compile "com.comphenix.protocol:ProtocolLib-API:4.2.1"
 	compile "org.bstats:bstats-bukkit:1.1"
+	compile "net.md-5:bungeecord-api:1.10-SNAPSHOT"
+	compile "org.javassist:javassist:3.15.0-GA"
+	compile files("BungeeCord.jar")
 }
 
 jar {
@@ -53,6 +60,7 @@ jar {
 
 processResources {
     include 'plugin.yml'
+    include 'bungee.yml'
     include 'config.yml'
 }
 

@@ -1,7 +1,7 @@
 name: SayNoToMcLeaks
 version: 1.1
 authors: [rexbut, lesbleu]
-main: fr.evercraft.saynotomcleaks.SayNoToMcLeaks
+main: fr.evercraft.saynotomcleaks.bukkit.SayNoToMcLeaks
 depend: [ProtocolLib]
 commands:
   SayNoToMcLeaks:
