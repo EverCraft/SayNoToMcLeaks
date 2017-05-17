@@ -1,4 +1,4 @@
 name: SayNoToMcLeaks
-main : fr.evercraft.saynotomcleaks.bungee.SayNoToMcLeaks
-version: 1.1
+main : fr.evercraft.saynotomcleaks.bungee.BungeeSayNoToMcLeaks
+version: 1.2
 author: rexbut

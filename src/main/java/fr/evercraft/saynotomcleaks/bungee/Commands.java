@@ -28,27 +28,25 @@ public class Commands extends Command  implements Listener {
 	
 	public static final String PERMISSION_RELOAD = "saynotomcleaks.reload";
 	
-	private final SayNoToMcLeaks plugin;
+	private final BungeeSayNoToMcLeaks plugin;
 
-	public Commands(SayNoToMcLeaks plugin) {
-		super("bSayNoToMcLeaks");
+	public Commands(BungeeSayNoToMcLeaks plugin) {
+		super("bSayNoToMcLeaks", null, "bmcleaks");
 		this.plugin = plugin;
 	}
 
-	@EventHandler
-	public void onTabComplete(TabCompleteEvent event) {
-		String[] args = event.getCursor().split(" ");
-		if (args.length == 0 || !args[0].equalsIgnoreCase(this.getName())) return;
-		
-		event.getSuggestions().clear();
-		if(args.length <= 2) {
-			event.getSuggestions().add("help");
-			event.getSuggestions().add("reload");
-		}
-	}
-
+	@SuppressWarnings("deprecation")
 	@Override
 	public void execute(CommandSender sender, String[] args) {
+		if (!this.plugin.isEnabled()) {
+			sender.sendMessage(new TextComponent(ChatColor.RED + "------------ [SayNoToMcLeaks : By rexbut] ------------"));
+			sender.sendMessage(new TextComponent(ChatColor.RED + "Plugin : Disable"));
+			if (!this.plugin.getProxy().getConfig().isOnlineMode()) {
+				sender.sendMessage(new TextComponent(ChatColor.RED + "Reason : This plugin only run in online mode."));
+			}
+			return;
+		}
+		
 		if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
 			if (sender.hasPermission(PERMISSION_RELOAD)) {
 				this.plugin.onReload();
@@ -58,10 +56,22 @@ public class Commands extends Command  implements Listener {
 			}
 		} else {
 			sender.sendMessage(new TextComponent(ChatColor.GREEN + "------------ [SayNoToMcLeaks : By rexbut] ------------"));
-			sender.sendMessage(new TextComponent(ChatColor.GREEN + "/bsaynotomcleaks help : Help plugin"));
+			sender.sendMessage(new TextComponent(ChatColor.GREEN + "/bmcleaks help : Help plugin"));
 			if (sender.hasPermission(PERMISSION_RELOAD)) {
-				sender.sendMessage(new TextComponent(ChatColor.GREEN + "/bsaynotomcleaks reload : Reload plugin"));
+				sender.sendMessage(new TextComponent(ChatColor.GREEN + "/bmcleaks reload : Reload plugin"));
 			}
+		}
+	}
+	
+	@EventHandler
+	public void onTabComplete(TabCompleteEvent event) {
+		String[] args = event.getCursor().split(" ");
+		if (args.length == 0 || !args[0].equalsIgnoreCase(this.getName())) return;
+		
+		event.getSuggestions().clear();
+		if(args.length <= 2) {
+			event.getSuggestions().add("help");
+			event.getSuggestions().add("reload");
 		}
 	}
 }

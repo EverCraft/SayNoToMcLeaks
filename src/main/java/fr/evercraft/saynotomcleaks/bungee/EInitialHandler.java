@@ -21,21 +21,19 @@ import net.md_5.bungee.protocol.packet.EncryptionResponse;
 
 public class EInitialHandler extends InitialHandler {
     
-    private final SayNoToMcLeaks plugin;
+    private final BungeeSayNoToMcLeaks plugin;
 
-	public EInitialHandler(BungeeCord bungee, ListenerInfo listener, SayNoToMcLeaks plugin) {
+	public EInitialHandler(BungeeCord bungee, ListenerInfo listener, BungeeSayNoToMcLeaks plugin) {
 		super(bungee, listener);
-		System.out.println("EInitialHandler");
 		this.plugin = plugin;
 	}
 
 	@Override
     public void handle(final EncryptionResponse encryptResponse) throws Exception {
-		System.out.println("EncryptionResponse");
 		super.handle(encryptResponse);
 		
 		final String name = this.getName();
-		final Boolean value = this.plugin.getListener().getCaches().getIfPresent(name);
+		final Boolean value = this.plugin.getListener().get(name);
 		if (value != null) {
 			if (value == true) {
 				this.plugin.debug("The player " + name + " is present in cache (No alt account).");
@@ -58,22 +56,20 @@ public class EInitialHandler extends InitialHandler {
             	EInitialHandler me = EInitialHandler.this;
             	
                 if (error == null) {
-                	LoginResult obj = BungeeCord.getInstance().gson.fromJson( result, LoginResult.class );
+                	LoginResult obj = BungeeCord.getInstance().gson.fromJson( result, LoginResult.class);
                     if ( obj != null && obj.getId() != null ) {
-                    	me.plugin.getListener().getCaches().put(name, true);
+                    	me.plugin.getListener().put(name, true);
                     	me.plugin.debug("The player " + name + " doesn't use alt account.");
             		} else {
-            			me.plugin.getListener().getCaches().put(name, false);
+            			me.plugin.getListener().put(name, false);
             			me.plugin.getListener().executeCommandsSync(name);
             		}
-                } else {
-                	if (me.plugin.isDebug()) {
-        				error.printStackTrace();
-        			}
+                } else if (me.plugin.isDebug()) {
+        			error.printStackTrace();
                 }
             }
         };
-
+        
         HttpClient.get(url, getChannel().getHandle().eventLoop(), handler);
 	}
 	

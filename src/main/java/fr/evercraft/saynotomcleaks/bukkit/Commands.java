@@ -29,13 +29,22 @@ public class Commands implements CommandExecutor, TabCompleter {
 	
 	public static final String PERMISSION_RELOAD = "saynotomcleaks.reload";
 	
-	private final SayNoToMcLeaks plugin;
+	private final BukkitSayNoToMcLeaks plugin;
 
-	public Commands(SayNoToMcLeaks plugin) {
+	public Commands(BukkitSayNoToMcLeaks plugin) {
 		this.plugin = plugin;
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmds, String commandLabel, String[] args) {
+		if (!this.plugin.isEnabled()) {
+			sender.sendMessage(ChatColor.RED + "------------ [SayNoToMcLeaks : By rexbut] ------------");
+			sender.sendMessage(ChatColor.RED + "Plugin : Disable");
+			if (!this.plugin.getServer().getOnlineMode()) {
+				sender.sendMessage(ChatColor.RED + "Reason : This plugin only run in online mode.");
+			}
+			return true;
+		}
+		
 		if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
 			if (sender.hasPermission(PERMISSION_RELOAD)) {
 				this.plugin.onReload();

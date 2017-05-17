@@ -19,15 +19,20 @@ package fr.evercraft.saynotomcleaks.bungee;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+
 import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -37,14 +42,14 @@ import net.md_5.bungee.netty.PipelineUtils;
 
 public class Listeners implements Listener {
 	
-	private final SayNoToMcLeaks plugin;
+	private final BungeeSayNoToMcLeaks plugin;
 	
 	public ChannelInitializer<Channel> channels;
 	public Method channelsMethod;
 	
 	private final LoadingCache<String, Boolean> caches; // True == no McLeaks
 	
-	public Listeners(SayNoToMcLeaks plugin) throws Exception {
+	public Listeners(BungeeSayNoToMcLeaks plugin) throws Exception {
 		this.plugin = plugin;
 		this.caches = CacheBuilder.newBuilder()
 			.expireAfterAccess(5, TimeUnit.HOURS)
@@ -63,13 +68,11 @@ public class Listeners implements Listener {
 	}
 
 	/**
-	 * Initalise le listener de ProtocolLib
+	 * Initalise le listener
 	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
-	public void listener() throws Exception {
-		System.out.println("Listeners.listener()");
-		
+	public void listener() throws Exception {		
 		Class<?> classPipelineUtils = Class.forName("net.md_5.bungee.netty.PipelineUtils");
 		Class<?> classChannelInitializer = Class.forName("io.netty.channel.ChannelInitializer");
 		Class<?> classChannel = Class.forName("io.netty.channel.Channel");
@@ -91,9 +94,26 @@ public class Listeners implements Listener {
 	        	final Listeners me = Listeners.this;
 	        	
 	        	me.channelsMethod.invoke(me.channels, ch);
-	            ch.pipeline().get(HandlerBoss.class).setHandler(new EInitialHandler(BungeeCord.getInstance(), ch.attr(PipelineUtils.LISTENER).get(), me.plugin));
+	        	ch.pipeline().get(HandlerBoss.class).setHandler(new EInitialHandler(BungeeCord.getInstance(), ch.attr(PipelineUtils.LISTENER).get(), me.plugin));
 	        }
 	    });
+	}
+	
+	public Boolean get(String name) {
+		return this.caches.getIfPresent(name);
+	}
+	
+	public void put(String name, boolean value) {
+		this.caches.put(name, value);
+		
+		ByteArrayDataOutput out = ByteStreams.newDataOutput();
+		out.writeUTF(BungeeSayNoToMcLeaks.SUBCHANNEL);
+		out.writeUTF(name);
+		out.writeBoolean(value);
+		
+		for (Entry<String, ServerInfo> server : this.plugin.getProxy().getServers().entrySet()) {
+			server.getValue().sendData(BungeeSayNoToMcLeaks.CHANNEL, out.toByteArray());
+		}
 	}
 	
 	/**
@@ -118,7 +138,7 @@ public class Listeners implements Listener {
 		this.executeCommandsSync(player);
 	}
 
-	public void executeCommandsSync(final ProxiedPlayer player) {		
+	public void executeCommandsSync(final ProxiedPlayer player) {
 		final String name = player.getName();
 		final String uuid = player.getUniqueId().toString();
 		final String displayname = player.getDisplayName();

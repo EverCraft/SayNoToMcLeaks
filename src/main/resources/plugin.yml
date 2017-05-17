@@ -1,9 +1,10 @@
 name: SayNoToMcLeaks
-version: 1.1
+version: 1.2
 authors: [rexbut, lesbleu]
-main: fr.evercraft.saynotomcleaks.bukkit.SayNoToMcLeaks
+main: fr.evercraft.saynotomcleaks.bukkit.BukkitSayNoToMcLeaks
 depend: [ProtocolLib]
 commands:
   SayNoToMcLeaks:
     description: SayNoToMcLeaks Description
     usage: /SayNoToMcLeaks
+    aliases: mcleaks

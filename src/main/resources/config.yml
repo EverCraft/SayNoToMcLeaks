@@ -14,6 +14,7 @@
 # |  <ip>              |  127.0.0.1                            |
 # --------------------------------------------------------------
 debug: false
+bungeecord: false
 commands:
-- kick <player> &cAlt Account detected
-- 'broadcast &6<player> &7was kicked for reason : Alt Account detected'
+- kick <player> §cAlt Account detected
+- 'say §6<player> §7was kicked for reason : Alt Account detected'
