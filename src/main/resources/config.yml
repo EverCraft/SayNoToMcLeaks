@@ -4,7 +4,9 @@
 #          
 # debug : Debug mode display messages on console
 #           
-# commands : Executes commands by console
+# bungeecord : Do you use a Bungeecord
+#           
+# commands : Executes commands by Bukkit console
 # --------------------------------------------------------------
 # | Replace variable   |  Example                              |
 # --------------------------------------------------------------
@@ -17,4 +19,4 @@ debug: false
 bungeecord: false
 commands:
 - kick <player> §cAlt Account detected
-- 'say §6<player> §7was kicked for reason : Alt Account detected'
+- 'say §6<player> §7was §7kicked §7for §7reason §7: §cAlt §cAccount §cdetected'

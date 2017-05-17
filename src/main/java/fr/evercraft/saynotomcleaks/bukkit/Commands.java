@@ -55,9 +55,9 @@ public class Commands implements CommandExecutor, TabCompleter {
 			return true;
 		} else {
 			sender.sendMessage(ChatColor.GREEN + "------------ [SayNoToMcLeaks : By rexbut] ------------");
-			sender.sendMessage(ChatColor.GREEN + "/saynotomcleaks help : Help plugin");
+			sender.sendMessage(ChatColor.GREEN + "/mcleaks help : Help plugin");
 			if (sender.hasPermission(PERMISSION_RELOAD)) {
-				sender.sendMessage(ChatColor.GREEN + "/saynotomcleaks reload : Reload plugin");
+				sender.sendMessage(ChatColor.GREEN + "/mcleaks reload : Reload plugin");
 			}
 			return true;
 		}
@@ -66,7 +66,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 		List<String> suggests = new ArrayList<String>();
-		if(alias.equalsIgnoreCase("saynotomcleaks") && args.length <= 1) {
+		if((alias.equalsIgnoreCase("saynotomcleaks") || alias.equalsIgnoreCase("mcleaks")) && args.length <= 1) {
 			suggests.add("help");
 			if (sender.hasPermission(PERMISSION_RELOAD)) {
 				suggests.add("reload");
