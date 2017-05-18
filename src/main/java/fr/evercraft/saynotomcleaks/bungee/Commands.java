@@ -16,6 +16,7 @@
  */
 package fr.evercraft.saynotomcleaks.bungee;
 
+import fr.evercraft.saynotomcleaks.bukkit.BukkitSayNoToMcLeaks;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -25,8 +26,6 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
 public class Commands extends Command  implements Listener {
-	
-	public static final String PERMISSION_RELOAD = "saynotomcleaks.reload";
 	
 	private final BungeeSayNoToMcLeaks plugin;
 
@@ -48,7 +47,7 @@ public class Commands extends Command  implements Listener {
 		}
 		
 		if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
-			if (sender.hasPermission(PERMISSION_RELOAD)) {
+			if (sender.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_RELOAD)) {
 				this.plugin.onReload();
 				sender.sendMessage(new TextComponent(ChatColor.GREEN + "[SayNoToMcLeaks] Reloaded"));
 			} else {
@@ -57,7 +56,7 @@ public class Commands extends Command  implements Listener {
 		} else {
 			sender.sendMessage(new TextComponent(ChatColor.GREEN + "------------ [SayNoToMcLeaks : By rexbut] ------------"));
 			sender.sendMessage(new TextComponent(ChatColor.GREEN + "/bmcleaks help : Help plugin"));
-			if (sender.hasPermission(PERMISSION_RELOAD)) {
+			if (sender.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_RELOAD)) {
 				sender.sendMessage(new TextComponent(ChatColor.GREEN + "/bmcleaks reload : Reload plugin"));
 			}
 		}

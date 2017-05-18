@@ -8,3 +8,8 @@ commands:
     description: SayNoToMcLeaks Description
     usage: /SayNoToMcLeaks
     aliases: mcleaks
+permissions:
+  saynotomcleaks.bypass:
+    description: Permission to bypass Alt Account protection
+    default: op
+  

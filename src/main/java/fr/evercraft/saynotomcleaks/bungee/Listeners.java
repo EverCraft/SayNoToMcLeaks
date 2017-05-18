@@ -28,6 +28,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
+import fr.evercraft.saynotomcleaks.bukkit.BukkitSayNoToMcLeaks;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 
@@ -105,7 +106,10 @@ public class Listeners implements Listener {
 	
 	public void put(String name, boolean value) {
 		this.caches.put(name, value);
-		
+		this.send(name, value);
+	}
+	
+	public void send(String name, boolean value) {		
 		ByteArrayDataOutput out = ByteStreams.newDataOutput();
 		out.writeUTF(BungeeSayNoToMcLeaks.SUBCHANNEL);
 		out.writeUTF(name);
@@ -143,6 +147,11 @@ public class Listeners implements Listener {
 		final String uuid = player.getUniqueId().toString();
 		final String displayname = player.getDisplayName();
 		final String ip = player.getAddress().getAddress().getHostAddress();
+		
+		if (player.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_BYPASS)) {
+			this.plugin.debug("The player " + name + " is an alt account but he has bypass permission.");
+			return;
+		}
 
 		for (String command : this.plugin.getCommands()) {
 			this.plugin.getProxy().getPluginManager().dispatchCommand(this.plugin.getProxy().getConsole(), command

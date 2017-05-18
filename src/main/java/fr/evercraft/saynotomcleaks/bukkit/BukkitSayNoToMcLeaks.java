@@ -28,6 +28,9 @@ import com.comphenix.protocol.ProtocolManager;
 
 public final class BukkitSayNoToMcLeaks extends JavaPlugin {
 	
+	public static final String PERMISSION_RELOAD = "saynotomcleaks.reload";
+	public static final String PERMISSION_BYPASS = "saynotomcleaks.bypass";
+	
 	private static final Logger LOG = Logger.getLogger("Minecraft");
 	
 	private ProtocolManager protocolManager;

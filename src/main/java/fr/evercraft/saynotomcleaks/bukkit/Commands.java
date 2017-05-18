@@ -27,8 +27,6 @@ import org.bukkit.command.TabCompleter;
 
 public class Commands implements CommandExecutor, TabCompleter {
 	
-	public static final String PERMISSION_RELOAD = "saynotomcleaks.reload";
-	
 	private final BukkitSayNoToMcLeaks plugin;
 
 	public Commands(BukkitSayNoToMcLeaks plugin) {
@@ -46,7 +44,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 		}
 		
 		if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
-			if (sender.hasPermission(PERMISSION_RELOAD)) {
+			if (sender.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_RELOAD)) {
 				this.plugin.onReload();
 				sender.sendMessage(ChatColor.GREEN + "[SayNoToMcLeaks] Reloaded");
 			} else {
@@ -56,7 +54,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 		} else {
 			sender.sendMessage(ChatColor.GREEN + "------------ [SayNoToMcLeaks : By rexbut] ------------");
 			sender.sendMessage(ChatColor.GREEN + "/mcleaks help : Help plugin");
-			if (sender.hasPermission(PERMISSION_RELOAD)) {
+			if (sender.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_RELOAD)) {
 				sender.sendMessage(ChatColor.GREEN + "/mcleaks reload : Reload plugin");
 			}
 			return true;
@@ -68,7 +66,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 		List<String> suggests = new ArrayList<String>();
 		if((alias.equalsIgnoreCase("saynotomcleaks") || alias.equalsIgnoreCase("mcleaks")) && args.length <= 1) {
 			suggests.add("help");
-			if (sender.hasPermission(PERMISSION_RELOAD)) {
+			if (sender.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_RELOAD)) {
 				suggests.add("reload");
 			}
 		}

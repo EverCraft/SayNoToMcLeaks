@@ -25,7 +25,7 @@ public abstract class Manager implements Listener {
 		this.plugin = plugin;
 		this.commands = Collections.synchronizedList(new ArrayList<String>());
 		this.caches = CacheBuilder.newBuilder()
-			.expireAfterAccess(5, TimeUnit.HOURS)
+			.expireAfterAccess(24, TimeUnit.HOURS)
 			.build(new CacheLoader<String, Boolean>() {
 				@Override
 				public Boolean load(String uuid) {
@@ -79,6 +79,11 @@ public abstract class Manager implements Listener {
 		final Player player = this.plugin.getServer().getPlayerExact(name);
 		if (player == null) {
 			this.plugin.debug( name + " not found.");
+			return;
+		}
+		
+		if (player.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_BYPASS)) {
+			this.plugin.debug("The player " + name + " is an alt account but he has bypass permission.");
 			return;
 		}
 		
