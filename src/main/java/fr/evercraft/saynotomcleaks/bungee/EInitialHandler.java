@@ -40,7 +40,6 @@ public class EInitialHandler extends InitialHandler {
 			} else {
 				this.plugin.debug("The player " + name + " is present in cache (alt account).");
 			}
-			this.plugin.getListener().send(name, value);
 			return;
 		}
 

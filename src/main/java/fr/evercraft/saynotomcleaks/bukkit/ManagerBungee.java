@@ -47,14 +47,16 @@ public class ManagerBungee extends Manager implements PluginMessageListener {
 	    	final String name = in.readUTF();
 	    	final boolean result = in.readBoolean();
 	    	
+	    	// S'il est déjà connu
+	    	if (this.caches.getIfPresent(name) != null) return;
+	    	
+	    	this.caches.put(name, result);
 	    	// Si les 2 IP correspondent
 	    	if (result) {
-				this.caches.put(name, true);
 				this.plugin.debug("The player " + name + " doesn't use alt account.");
 				
 			// Les 2 IP ne correspondent pas
 			} else {
-				this.caches.put(name, false);
 				this.executeCommands(name, 100);
 			}
 	    }
