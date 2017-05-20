@@ -38,7 +38,7 @@ public class Commands extends Command  implements Listener {
 	@Override
 	public void execute(CommandSender sender, String[] args) {
 		if (!this.plugin.isEnabled()) {
-			sender.sendMessage(new TextComponent(ChatColor.RED + "------------ [SayNoToMcLeaks : By rexbut] ------------"));
+			sender.sendMessage(new TextComponent(ChatColor.RED + "------------ [SayNoToMcLeaks " + this.plugin.getDescription().getVersion() + " : By rexbut] ------------"));
 			sender.sendMessage(new TextComponent(ChatColor.RED + "Plugin : Disable"));
 			if (!this.plugin.getProxy().getConfig().isOnlineMode()) {
 				sender.sendMessage(new TextComponent(ChatColor.RED + "Reason : This plugin only run in online mode."));
@@ -54,7 +54,7 @@ public class Commands extends Command  implements Listener {
 				sender.sendMessage(new TextComponent(ChatColor.RED + "[SayNoToMcLeaks] You don't have permission !"));
 			}
 		} else {
-			sender.sendMessage(new TextComponent(ChatColor.GREEN + "------------ [SayNoToMcLeaks : By rexbut] ------------"));
+			sender.sendMessage(new TextComponent(ChatColor.GREEN + "------------ [SayNoToMcLeaks " + this.plugin.getDescription().getVersion() + " : By rexbut] ------------"));
 			sender.sendMessage(new TextComponent(ChatColor.GREEN + "/bmcleaks help : Help plugin"));
 			if (sender.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_RELOAD)) {
 				sender.sendMessage(new TextComponent(ChatColor.GREEN + "/bmcleaks reload : Reload plugin"));
