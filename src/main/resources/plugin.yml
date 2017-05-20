@@ -1,5 +1,5 @@
 name: SayNoToMcLeaks
-version: 1.4
+version: 1.5
 authors: [rexbut, lesbleu]
 main: fr.evercraft.saynotomcleaks.bukkit.BukkitSayNoToMcLeaks
 depend: [ProtocolLib]
