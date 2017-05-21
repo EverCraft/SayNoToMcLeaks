@@ -1,7 +1,7 @@
 SayNoToMcLeaks
 =============
 
-A minecraft plugin for Sponge platforms.
+A minecraft plugin for Bukkit platforms.
 
 ## Links ##
 * [Download](http://ci.evercraft.fr/job/EverCraft/job/SayNoToMcLeaks/)
