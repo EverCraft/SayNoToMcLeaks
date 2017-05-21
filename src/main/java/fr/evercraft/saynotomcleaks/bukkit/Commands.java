@@ -35,7 +35,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 
 	public boolean onCommand(CommandSender sender, Command cmds, String commandLabel, String[] args) {
 		if (!this.plugin.isEnabled()) {
-			sender.sendMessage(ChatColor.RED + "------------ [SayNoToMcLeaks " + this.plugin.getDescription().getVersion() + " : By rexbut] ------------");
+			sender.sendMessage(ChatColor.RED + "---------- [SayNoToMcLeaks v" + this.plugin.getDescription().getVersion() + " : By rexbut] ----------");
 			sender.sendMessage(ChatColor.RED + "Plugin : Disable");
 			if (!this.plugin.getServer().getOnlineMode()) {
 				sender.sendMessage(ChatColor.RED + "Reason : This plugin only run in online mode.");
@@ -52,7 +52,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 			}
 			return true;
 		} else {
-			sender.sendMessage(ChatColor.GREEN + "------------ [SayNoToMcLeaks " + this.plugin.getDescription().getVersion() + " : By rexbut] ------------");
+			sender.sendMessage(ChatColor.GREEN + "---------- [SayNoToMcLeaks v" + this.plugin.getDescription().getVersion() + " : By rexbut] ----------");
 			sender.sendMessage(ChatColor.GREEN + "/mcleaks help : Help plugin");
 			if (sender.hasPermission(BukkitSayNoToMcLeaks.PERMISSION_RELOAD)) {
 				sender.sendMessage(ChatColor.GREEN + "/mcleaks reload : Reload plugin");
