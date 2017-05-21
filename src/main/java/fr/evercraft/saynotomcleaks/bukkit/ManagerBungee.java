@@ -37,6 +37,7 @@ public class ManagerBungee extends Manager implements PluginMessageListener {
 	    this.plugin.getServer().getMessenger().registerIncomingPluginChannel(this.plugin, "BungeeCord", this);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onPluginMessageReceived(String channel, Player player, byte[] message) {
 		if (!channel.equals(BungeeSayNoToMcLeaks.CHANNEL)) return;
@@ -57,7 +58,10 @@ public class ManagerBungee extends Manager implements PluginMessageListener {
 				
 			// Les 2 IP ne correspondent pas
 			} else {
-				this.executeCommands(name, 100);
+				// Si le joueur est déjà connecté
+				if (this.plugin.getServer().getPlayer(name) != null) {
+					this.executeCommands(name, 100);
+				}
 			}
 	    }
 		
