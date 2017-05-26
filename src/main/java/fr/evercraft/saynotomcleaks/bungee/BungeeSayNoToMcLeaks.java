@@ -83,6 +83,7 @@ public final class BungeeSayNoToMcLeaks extends Plugin {
 		
 		// Configs
 		this.initConfig();
+		this.listener.reload();
 		this.info("Reloaded");
 	}
 	
