@@ -5,7 +5,7 @@ apply plugin: 'maven'
 apply plugin: 'java'
 
 // Arguments :
-ext.plugin_version = "1.6"
+ext.plugin_version = "1.7"
 
 version = ext.plugin_version + "-RELEASE"
 if (project.hasProperty("BUILD_NUMBER")) {
