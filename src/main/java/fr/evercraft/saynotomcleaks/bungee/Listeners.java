@@ -53,7 +53,7 @@ public class Listeners implements Listener {
 	public Listeners(BungeeSayNoToMcLeaks plugin) throws Exception {
 		this.plugin = plugin;
 		this.caches = CacheBuilder.newBuilder()
-			.expireAfterAccess(5, TimeUnit.HOURS)
+			.expireAfterAccess(1, TimeUnit.HOURS)
 			.build(new CacheLoader<String, Boolean>() {
 				@Override
 				public Boolean load(String uuid) {
@@ -66,6 +66,10 @@ public class Listeners implements Listener {
 	
 	public LoadingCache<String, Boolean> getCaches() {
 		return this.caches;
+	}
+	
+	public void reload() {
+		this.caches.invalidateAll();
 	}
 
 	/**

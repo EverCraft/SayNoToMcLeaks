@@ -25,7 +25,7 @@ public abstract class Manager implements Listener {
 		this.plugin = plugin;
 		this.commands = Collections.synchronizedList(new ArrayList<String>());
 		this.caches = CacheBuilder.newBuilder()
-			.expireAfterAccess(24, TimeUnit.HOURS)
+			.expireAfterAccess(1, TimeUnit.HOURS)
 			.build(new CacheLoader<String, Boolean>() {
 				@Override
 				public Boolean load(String uuid) {
@@ -37,6 +37,7 @@ public abstract class Manager implements Listener {
 	
 	public void reload() {
 		this.commands.clear();
+		this.caches.invalidateAll();
 		
 		final List<String> commands = this.plugin.getConfig().getStringList("commands");
 		if (commands != null) {
