@@ -1,11 +1,27 @@
 SayNoToMcLeaks
 =============
 
+## Description ##
+This plugin block Alt Account System same as McLeaks or AltDispenser.
+
+SayNoToMcLeaks uses MojangAPI to check IP Authentication on Minecraft.net and on your server.
+If the result doesnt the same, the plugin execute custom commands (Editable on config file).
+
+Please share SayNoToMcLeaks to your friends or others because
+more SayNoToMcLeaks will be installed on Minecraft servers.
+More McLeaks and Alt account system will be useless.
 A minecraft plugin for Bukkit platforms.
 
+[More informations](wiki.vg)
+
+## Stolen Account ##
+![ClientNoSafe](doc/ClientNoSafe.png)
+
+## Legal Account ##
+![ClientSafe](doc/ClientSafe.png)
+
 ## Links ##
-* [Download](http://ci.evercraft.fr/job/EverCraft/job/SayNoToMcLeaks/)
-* [Wiki](http://wiki.evercraft.fr)
+* [Download](https://www.spigotmc.org/resources/saynotomcleaks.40906/download?version=161748)
 * [Issues](https://github.com/EverCraft/SayNoToMcLeaks/issues)
 * [Website](http://evercraft.fr)
 * [Support Me](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RUSKPBMNJG5R4)
